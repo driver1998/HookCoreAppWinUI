@@ -4,7 +4,7 @@ This is a hacky hook to allow WinUI 3 to run in UWP environment.
 
 ## Disclaimer
 
-Windows App SDK and WinUI 3 is **NOT SUPPORTED** in UWP, this is just a fun science project expoliting an old workaround method, you should **NEVER EVER USE IT IN PRODUCTION ENVIRONMENT**.
+Windows App SDK and WinUI 3 are **NOT SUPPORTED** in UWP, this is just a fun science project expoliting an old workaround method, you should **NEVER EVER USE IT IN PRODUCTION ENVIRONMENT**.
 
 Also this is my first ever API hook, it might contain some bone-headed mistakes, crash your system or destroy your data, **USE IT AT YOUR OWN RISK**. While you are at it, review the code, it isn't long ;-).
 
