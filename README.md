@@ -14,7 +14,7 @@ Windows App SDK version 1.4.2 is tested.
 
 You'll need to write your own entrypoint (`main` method). As the auto-generated one will not work in UWP. Namely, you'll need to use `MTAThread` instead of `STAThread`.
 
-Just load this dll before `Microsoft.UI.Xaml.Application.Start`, like this:
+Then, just load this dll before `Microsoft.UI.Xaml.Application.Start`, like this:
 
 ```csharp
 public static class Program
