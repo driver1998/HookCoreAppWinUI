@@ -12,7 +12,7 @@ Also this is my first ever API hook, it might contain some bone-headed mistakes,
 
 Windows App SDK version 1.4.2 is tested.
 
-You'll need to write your own entrypoint (`main` method). As the auto-generated one will not work in UWP.
+You'll need to write your own entrypoint (`main` method). As the auto-generated one will not work in UWP. Namely, you'll need to use `MTAThread` instead of `STAThread`.
 
 Just load this dll before `Microsoft.UI.Xaml.Application.Start`, like this:
 
