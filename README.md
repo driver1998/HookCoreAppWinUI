@@ -70,4 +70,4 @@ It should be your `App` class.
 
 Also remove the `runFullTrust` capability, and add whatever you need.
 
-Now you should build, deploy and run your WinUI 3 UWP.
+Now you should be able to build, deploy and run your WinUI 3 UWP app.
