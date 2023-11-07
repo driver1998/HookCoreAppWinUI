@@ -8,6 +8,8 @@
 
 #if defined(_M_AMD64)
 #pragma comment(lib, "../detours/lib.X64/detours.lib")
+#elif defined(_M_ARM64)
+#pragma comment(lib, "../detours/lib.ARM64/detours.lib")
 #elif defined(_M_IX86)
 #pragma comment(lib, "../detours/lib.X86/detours.lib")
 #endif
@@ -15,12 +17,13 @@
 std::mutex xamlKeyMtx;
 std::map<HKEY, bool> xamlKeyMap;
 
-LSTATUS(*WINAPI oldRegOpenKeyExW)(HKEY, LPCWSTR, DWORD, REGSAM, PHKEY) = RegOpenKeyExW;
-LSTATUS WINAPI NewRegOpenKeyExW(HKEY hkey, LPCWSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult)
+LSTATUS(APIENTRY* oldRegOpenKeyExW)(HKEY, LPCWSTR, DWORD, REGSAM, PHKEY) = RegOpenKeyExW;
+LSTATUS APIENTRY NewRegOpenKeyExW(HKEY hkey, LPCWSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult)
 {
 	LSTATUS result = oldRegOpenKeyExW(hkey, lpSubKey, ulOptions, samDesired, phkResult);
 
-	if (hkey == HKEY_LOCAL_MACHINE && !_wcsicmp(lpSubKey, L"Software\\Microsoft\\WinUI\\XAML")) {
+	if (hkey == HKEY_LOCAL_MACHINE && !_wcsicmp(lpSubKey, L"Software\\Microsoft\\WinUI\\XAML"))
+	{
 		std::lock_guard<std::mutex> lock(xamlKeyMtx);
 		if (result == ERROR_FILE_NOT_FOUND)
 		{
@@ -36,8 +39,8 @@ LSTATUS WINAPI NewRegOpenKeyExW(HKEY hkey, LPCWSTR lpSubKey, DWORD ulOptions, RE
 	return result;
 }
 
-LSTATUS(*WINAPI oldRegCloseKey)(HKEY hKey) = RegCloseKey;
-LSTATUS WINAPI NewRegCloseKey(HKEY hKey)
+LSTATUS(APIENTRY* oldRegCloseKey)(HKEY hKey) = RegCloseKey;
+LSTATUS APIENTRY NewRegCloseKey(HKEY hKey)
 {
 	bool isXamlKey;
 	bool isRealKey = false;
@@ -81,12 +84,12 @@ LSTATUS WINAPI NewRegCloseKey(HKEY hKey)
 	return result;
 }
 
-LSTATUS(*WINAPI oldRegQueryValueExW)(HKEY hKey, LPCWSTR lpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData) = RegQueryValueExW;
-LSTATUS WINAPI NewRegQueryValueExW(HKEY hKey, LPCWSTR lpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData) {
-
+LSTATUS(APIENTRY* oldRegQueryValueExW)(HKEY hKey, LPCWSTR lpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData) = RegQueryValueExW;
+LSTATUS APIENTRY NewRegQueryValueExW(HKEY hKey, LPCWSTR lpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData)
+{
 	LSTATUS result;
-	if (lpValueName != NULL && !_wcsicmp(lpValueName, L"EnableUWPWindow")) {
-
+	if (lpValueName != NULL && !_wcsicmp(lpValueName, L"EnableUWPWindow"))
+	{
 		bool isXamlKey;
 		bool isRealKey = false;
 		{
@@ -101,7 +104,8 @@ LSTATUS WINAPI NewRegQueryValueExW(HKEY hKey, LPCWSTR lpValueName, LPDWORD lpRes
 
 		if (isXamlKey)
 		{
-			if (isRealKey) {
+			if (isRealKey)
+			{
 				// real key
 				result = oldRegQueryValueExW(hKey, lpValueName, lpReserved, lpType, lpData, lpcbData);
 				if (result == ERROR_SUCCESS && lpData != NULL)
@@ -164,7 +168,8 @@ LSTATUS WINAPI NewRegQueryValueExW(HKEY hKey, LPCWSTR lpValueName, LPDWORD lpRes
 	return result;
 }
 
-void StartHook() {
+void StartHook()
+{
 	OutputDebugStringW(L"StartHook\n");
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
@@ -174,7 +179,8 @@ void StartHook() {
 	DetourTransactionCommit();
 }
 
-void EndHook() {
+void EndHook()
+{
 	OutputDebugStringW(L"EndHook\n");
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
@@ -185,24 +191,24 @@ void EndHook() {
 }
 
 
-BOOL APIENTRY DllMain( HMODULE hModule,
-                       DWORD  ul_reason_for_call,
-                       LPVOID lpReserved
-                     )
+BOOL APIENTRY DllMain(HMODULE hModule,
+	DWORD  ul_reason_for_call,
+	LPVOID lpReserved
+)
 {
-    switch (ul_reason_for_call)
-    {
-    case DLL_PROCESS_ATTACH:
+	switch (ul_reason_for_call)
+	{
+	case DLL_PROCESS_ATTACH:
 		break;
-    case DLL_THREAD_ATTACH:
+	case DLL_THREAD_ATTACH:
 		StartHook();
 		break;
-    case DLL_THREAD_DETACH:
+	case DLL_THREAD_DETACH:
 		EndHook();
 		break;
-    case DLL_PROCESS_DETACH:
-        break;
-    }
-    return TRUE;
+	case DLL_PROCESS_DETACH:
+		break;
+	}
+	return TRUE;
 }
 
